@@ -1,5 +1,4 @@
 # VMware.VimAutomation.Custom
----------------------------
 *Extends the functionality of the VMware PowerCLI module*  
 
 **Get-VMHostSSHServiceStatus**  
