@@ -740,7 +740,8 @@ function Get-VMHostCpuRatio {
 
         foreach ($h in $esxi_host) {
             $vcpu_count = 0
-            $ratio = 0
+            $physical_ratio = 0
+            $logical_ratio = 0
             $pcpu_core_count = $h.ExtensionData.Hardware.CpuInfo.NumCpuCores
             $pcpu_thread_count = $h.ExtensionData.Hardware.CpuInfo.NumCpuThreads
             $virtual_machines = Get-VM -Location $h
@@ -752,9 +753,6 @@ function Get-VMHostCpuRatio {
             if ($vcpu_count -ne 0) {
                 $physical_ratio = $vcpu_count/$pcpu_core_count
                 $logical_ratio = $vcpu_count/$pcpu_thread_count
-             } else {
-                $physical_ratio = 0
-                $logical_ratio = 0
             }
             
             $obj = New-Object PSObject
