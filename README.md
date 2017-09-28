@@ -20,13 +20,16 @@ Retrieves the datastore usage of VMHosts provided
 Creates a host networking CSV import template to be used with Import-VMHostNetworkingFromCsv
 
 **Export-VMHostNetworkingToCsv**  
-Exports host networking for VMHosts provided
+Exports host networking of VMHosts provided
 
 **Import-VMHostNetworkingFromCsv**  
 Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
 **Test-VMHostNetworking**  
-Pings addresses from each provided VMkernel port for VMHosts provided
+Pings addresses from each provided VMkernel port of VMHosts provided
+
+**Get-VMHostVirtualToPhysicalCpuRatio**  
+Calculate the virtual to physical CPU ratio of VMHosts provided
 
 Installation
 --------------
