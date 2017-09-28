@@ -28,7 +28,7 @@ Imports host networking for VMHosts provided utilizing the output from Export-VM
 **Test-VMHostNetworking**  
 Pings addresses from each provided VMkernel port of VMHosts provided
 
-**Get-VMHostVirtualToPhysicalCpuRatio**  
+**Get-VMHostCpuRatio**  
 Calculate the virtual to physical CPU ratio of VMHosts provided
 
 Installation
