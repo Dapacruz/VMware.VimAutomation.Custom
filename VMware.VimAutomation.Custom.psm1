@@ -725,7 +725,7 @@ function Test-VMHostNetworking {
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
-function Get-VMHostVirtualToPhysicalCpuRatio {
+function Get-VMHostCpuRatio {
     [CmdletBinding()]
     Param (
         [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
