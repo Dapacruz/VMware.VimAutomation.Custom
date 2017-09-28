@@ -729,7 +729,8 @@ function Get-VMHostCpuRatio {
     [CmdletBinding()]
     Param (
         [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
-        [string[]]$VMHost
+        [string[]]$VMHost,
+        [switch]$IncludeLogicalCores
     )
     Begin {
         $results = @()
@@ -760,8 +761,11 @@ function Get-VMHostCpuRatio {
             $obj | Add-Member -MemberType NoteProperty -Name 'vCPUs' -Value $vcpu_count
             $obj | Add-Member -MemberType NoteProperty -Name 'PhysicalCores' -Value $pcpu_core_count
             $obj | Add-Member -MemberType NoteProperty -Name 'PhysicalRatio' -Value $('{0:N3}:1' -f $physical_ratio)
-            $obj | Add-Member -MemberType NoteProperty -Name 'LogicalCores' -Value $pcpu_thread_count
-            $obj | Add-Member -MemberType NoteProperty -Name 'LogicalRatio' -Value $('{0:N3}:1' -f $logical_ratio)
+            
+            if ($IncludeLogicalCores) {
+                $obj | Add-Member -MemberType NoteProperty -Name 'LogicalCores' -Value $pcpu_thread_count
+                $obj | Add-Member -MemberType NoteProperty -Name 'LogicalRatio' -Value $('{0:N3}:1' -f $logical_ratio)
+            }
                                     
             $results += $obj
         }
