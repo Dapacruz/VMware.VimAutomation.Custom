@@ -364,7 +364,7 @@ function New-VMHostNetworkingCsvTemplate {
         The VMHosts you want to export networking for. Can be a single host or multiple hosts provided by the pipeline
         .Example
         Export-VMHostNetworkingToCsv vmhost*
-        Exports networking for vmhosts with names that begin with "vmhost"
+        Exports networking of vmhosts with names that begin with "vmhost"
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
@@ -459,7 +459,7 @@ function Export-VMHostNetworkingToCsv {
         .Synopsis
         Imports host networking
         .Description
-        Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworkingToCsv
+        Imports host networking, of VMHosts provided, utilizing the output from Export-VMHostNetworkingToCsv
         .Parameter VMHosts
         The VMHosts you want to import networking for. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
@@ -639,7 +639,7 @@ function Import-VMHostNetworkingFromCsv {
         .Synopsis
         Test host networking
         .Description
-        Pings addresses from each provided VMkernel port for VMHosts provided
+        Pings addresses from each provided VMkernel port of VMHosts provided
         .Parameter VMHosts
         The VMHosts you want to ping from. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Parameter VMkernel
@@ -715,7 +715,7 @@ function Test-VMHostNetworking {
         .Synopsis
         Calculate the virtual to physcial CPU ratio
         .Description
-        Calculate the virtual to physical CPU ratio for VMHosts provided
+        Calculate the virtual to physical CPU ratio of VMHosts provided
         .Parameter VMHost
         The VMHost you want to calculate the virtual to physical CPU ratio of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
