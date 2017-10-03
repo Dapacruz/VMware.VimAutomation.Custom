@@ -19,6 +19,8 @@
         Export ESXi host networking to CSV
         Import ESXi host networking from CSV
         Test ESXi host networking
+        Calculate the virtual to physcial CPU ratio
+        Display the CDP info for each vmnic
 #>
 
 
@@ -775,11 +777,12 @@ function Get-VMHostCpuRatio {
     }
 }
 
+
 <#
         .Synopsis
-        Displays the CDP info for each vmnic
+        Display the CDP info for each vmnic
         .Description
-        Displays the CDP info for each vmnic of VMHosts provided
+        Display the CDP info for each vmnic of VMHosts provided
         .Parameter VMHost
         The VMHost you want to display the vmnic CDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
