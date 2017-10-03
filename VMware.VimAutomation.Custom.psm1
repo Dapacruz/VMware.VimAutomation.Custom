@@ -789,7 +789,7 @@ function Get-VMHostCpuRatio {
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
-function Get-VMHostNetworkingCdpInfo {
+function Get-VMHostNetworkCdpInfo {
     [CmdletBinding()]
     Param (
         [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
