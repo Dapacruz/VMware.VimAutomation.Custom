@@ -31,7 +31,7 @@ Pings addresses from each provided VMkernel port of VMHosts provided
 **Get-VMHostCpuRatio**  
 Calculate the virtual to physical CPU ratio of VMHosts provided
 
-**Get-VMHostNetworkingCdpInfo**  
+**Get-VMHostNetworkCdpInfo**  
 Displays the CDP info for each vmnic of VMHosts provided
 
 Installation
