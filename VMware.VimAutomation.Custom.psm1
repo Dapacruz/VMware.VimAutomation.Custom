@@ -581,12 +581,12 @@ function Import-VMHostNetworkingFromCsv {
                     if ($vpg.ActiveNic) {
                             $ntp | Set-NicTeamingPolicy -MakeNicActive $vpg.ActiveNic.Split(',').Trim()
                         }
-                        if ($vpg.StandbyNic) {
-                            $ntp | Set-NicTeamingPolicy -MakeNicStandby $vpg.StandbyNic.Split(',').Trim()
-                        }
-                        if ($vpg.UnusedNic) {
-                            $ntp | Set-NicTeamingPolicy -MakeNicUnused $vpg.UnusedNic.Split(',').Trim()
-                        }
+                    if ($vpg.StandbyNic) {
+                        $ntp | Set-NicTeamingPolicy -MakeNicStandby $vpg.StandbyNic.Split(',').Trim()
+                    }
+                    if ($vpg.UnusedNic) {
+                        $ntp | Set-NicTeamingPolicy -MakeNicUnused $vpg.UnusedNic.Split(',').Trim()
+                    }
                 }
             }
 
@@ -768,6 +768,61 @@ function Get-VMHostCpuRatio {
             }
                                     
             $results += $obj
+        }
+    }
+    End {
+        Write-Output $results
+    }
+}
+
+<#
+        .Synopsis
+        Displays the CDP info for each vmnic
+        .Description
+        Displays the CDP info for each vmnic of VMHosts provided
+        .Parameter VMHost
+        The VMHost you want to display the vmnic CDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
+        .Example
+        PS C:\>Get-VMHostNetworkingCdpInfo -VMHost esxi*
+
+        Displays the vmnic CDP info of all ESXi hosts with names that begin with 'esxi'
+        .Link
+        https://github.com/Dapacruz/VMware.VimAutomation.Custom
+#>
+function Get-VMHostNetworkingCdpInfo {
+    [CmdletBinding()]
+    Param (
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
+        [string[]]$VMHost
+    )
+    Begin {
+        $results = @()
+    }
+    Process {
+        # Expand to full hostname in case wildcards are used
+        $esxi_host = Get-VMHost -Name $VMHost
+
+        foreach ($h in $esxi_host) {
+            foreach ($hv in Get-View $h) {
+                $network_system_view = Get-View $hv.ConfigManager.NetworkSystem
+        
+                foreach ($pnic in $network_system_view.NetworkInfo.Pnic) {
+                    $pnic_info = $network_system_view.QueryNetworkHint($pnic.Device)
+            
+                    foreach ($hint in $pnic_info) {
+                        $obj = New-Object -TypeName PSObject
+                        $obj | Add-Member -MemberType NoteProperty -Name VMHost -Value $hv.Name
+                        $obj | Add-Member -MemberType NoteProperty -Name Device -Value $pnic.Device
+                        if ($hint.ConnectedSwitchPort) {
+                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value $($hint.ConnectedSwitchPort.PortId)
+                        }
+                        else {
+                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value  'CDP is not available'
+                        }
+                        $results += $obj
+                    }
+                }
+            }
         }
     }
     End {
