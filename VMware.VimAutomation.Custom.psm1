@@ -783,7 +783,7 @@ function Get-VMHostCpuRatio {
         .Parameter VMHost
         The VMHost you want to display the vmnic CDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
-        PS C:\>Get-VMHostNetworkingCdpInfo -VMHost esxi*
+        PS C:\>Get-VMHostNetworkCdpInfo -VMHost esxi*
 
         Displays the vmnic CDP info of all ESXi hosts with names that begin with 'esxi'
         .Link
