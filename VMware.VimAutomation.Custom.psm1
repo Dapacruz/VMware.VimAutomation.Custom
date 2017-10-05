@@ -817,10 +817,12 @@ function Get-VMHostNetworkCdpInfo {
                         $obj | Add-Member -MemberType NoteProperty -Name VMHost -Value $hv.Name
                         $obj | Add-Member -MemberType NoteProperty -Name Device -Value $pnic.Device
                         if ($hint.ConnectedSwitchPort) {
-                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value $($hint.ConnectedSwitchPort.PortId)
+                            $obj | Add-Member -MemberType NoteProperty -Name DeviceId -Value $hint.ConnectedSwitchPort.DevId
+                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value $hint.ConnectedSwitchPort.PortId
                         }
                         else {
-                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value  'CDP is not available'
+                            $obj | Add-Member -MemberType NoteProperty -Name DeviceId -Value 'n/a'
+                            $obj | Add-Member -MemberType NoteProperty -Name PortId -Value  'n/a'
                         }
                         $results += $obj
                     }
