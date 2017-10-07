@@ -697,7 +697,7 @@ function Test-VMHostNetworking {
                     $results = $ping.Invoke($params)
                     if ($results.Summary.PacketLost -ne 0) {
                         Write-Warning "Ping failed on $vmhost ($vmk): $addr"
-                        $failures += 1
+                        $failures++
                     }
                 }
             }
@@ -730,8 +730,8 @@ function Test-VMHostNetworking {
 function Get-VMHostCpuRatio {
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
-        [string[]]$VMHost,
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position=0)][Alias('Name', 'VMHosts')]
+        [string[]]$VMHost = '*',
         [switch]$IncludeLogicalCores
     )
     Begin {
@@ -795,8 +795,8 @@ function Get-VMHostCpuRatio {
 function Get-VMHostNetworkCdpInfo {
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
-        [string[]]$VMHost
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position=0)][Alias('Name', 'VMHosts')]
+        [string[]]$VMHost = '*'
     )
     Begin {
         $results = @()
