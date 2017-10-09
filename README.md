@@ -37,6 +37,8 @@ Displays the CDP info for each vmnic of VMHosts provided
 **Get-VMCpuReadyPercent**  
 Calculates the CPU ready percent average of virtual machines provided
 
+<br />
+
 Installation
 --------------
 Coming soon.
