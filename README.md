@@ -29,10 +29,13 @@ Imports host networking for VMHosts provided utilizing the output from Export-VM
 Pings addresses from each provided VMkernel port of VMHosts provided
 
 **Get-VMHostCpuRatio**  
-Calculate the virtual to physical CPU ratio of VMHosts provided
+Calculates the virtual to physical CPU ratio of VMHosts provided
 
 **Get-VMHostNetworkCdpInfo**  
 Displays the CDP info for each vmnic of VMHosts provided
+
+**Get-VMCpuReadyPercent**  
+Calculates the CPU ready percent average of virtual machines provided
 
 Installation
 --------------
