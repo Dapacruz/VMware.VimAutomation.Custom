@@ -19,8 +19,9 @@
         Export ESXi host networking to CSV
         Import ESXi host networking from CSV
         Test ESXi host networking
-        Calculate the virtual to physcial CPU ratio
+        Calculates the virtual to physcial CPU ratio
         Display the CDP info for each vmnic
+        Calculates virtual machine CPU ready percent average
 #>
 
 
@@ -715,15 +716,15 @@ function Test-VMHostNetworking {
 
 <#
         .Synopsis
-        Calculate the virtual to physcial CPU ratio
+        Calculates the virtual to physcial CPU ratio
         .Description
-        Calculate the virtual to physical CPU ratio of VMHosts provided
+        Calculates the virtual to physical CPU ratio of VMHosts provided
         .Parameter VMHost
         The VMHost you want to calculate the virtual to physical CPU ratio of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Example
         PS C:\>Get-VMHostVirtualToPhysicalCpuRatio -VMHost esxi*
 
-        Calculate the virtual to physical CPU ratio of all ESXi hosts with names that begin with 'esxi'
+        Calculates the virtual to physical CPU ratio of all ESXi hosts with names that begin with 'esxi'
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
@@ -838,15 +839,15 @@ function Get-VMHostNetworkCdpInfo {
 
 <#
         .Synopsis
-        Calculate virtual machine CPU ready percent average
+        Calculates virtual machine CPU ready percent average
         .Description
-        Calculate the CPU ready percent average of virtual machines provided
+        Calculates the CPU ready percent average of virtual machines provided
         .Parameter VM
         The virtual machine you want to calculate the CPU ready percent of. Can be a single virtual mahcine or multiple virtual machines provided by the pipeline. Wildcards are supported
         .Example
         PS C:\>Get-VMCpuReadyPercent -VM vm* -TimePeriod Realtime
 
-        Calculate the realtime CPU ready percent average of all virtual machines with names that begin with 'vm'
+        Calculates the realtime CPU ready percent average of all virtual machines with names that begin with 'vm'
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
