@@ -19,9 +19,9 @@
         Export ESXi host networking to CSV
         Import ESXi host networking from CSV
         Test ESXi host networking
-        Calculates the virtual to physcial CPU ratio
+        Calculate the virtual to physcial CPU ratio
         Display the CDP info for each vmnic
-        Calculates virtual machine CPU ready percent average
+        Calculate virtual machine CPU ready percent average
 #>
 
 
