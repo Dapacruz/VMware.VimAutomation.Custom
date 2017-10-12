@@ -671,10 +671,14 @@ function Test-VMHostNetworking {
         [string[]]$VMkernelPort,
         [Parameter(Mandatory)]
         [string[]]$IpAddress,
-        [int]$Mtu = 1472
+        [int]$Mtu = 1472,
+        [int]$Count = 1,
+        [float]$Wait = .001,
+        [switch]$ShowReport
     )
     Begin {
         $failures = 0
+        $report = @()
     }
     Process {
         # Expand to full hostname in case wildcards are used
@@ -685,21 +689,36 @@ function Test-VMHostNetworking {
             $ping = $esxcli.network.diag.ping
             
             foreach ($vmk in $VMkernelPort) {
-                foreach ($addr in $IpAddress) {
-                    $params = $ping.CreateArgs()
-                    $params.host = $addr
-                    $params.interface = $vmk
-                    $params.size = $mtu
-                    $params.df = $true
-                    $params.wait = '.1'
-                    $params.count = 1
+                for ($i=0; $i -lt $Count; $i++) {
+                    $obj = New-Object -TypeName PSObject
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $VMHost
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name VMkernelPort -Value $vmk
+                    
+                    foreach ($addr in $IpAddress) {
+                        $params = $ping.CreateArgs()
+                        $params.host = $addr
+                        $params.interface = $vmk
+                        $params.size = $mtu
+                        $params.df = $true
+                        $params.wait = $Wait
+                        $params.count = 1
 
-                    Write-Verbose "Pinging $addr from $vmk on $VMHost ..."
-                    $results = $ping.Invoke($params)
-                    if ($results.Summary.PacketLost -ne 0) {
-                        Write-Warning "Ping failed on $vmhost ($vmk): $addr"
-                        $failures++
+                        Write-Verbose "Pinging $addr from $vmk on $VMHost ..."
+                        $results = $ping.Invoke($params)
+                        $rtt = $results.Summary.RoundtripAvgMS
+                        if ($results.Summary.PacketLost -ne 0) {
+                            Write-Warning "Ping failed on $vmhost ($vmk): $addr"
+                            Add-Member -InputObject $obj -MemberType NoteProperty -Name $addr -Value -
+                            $failures++
+                        } else {
+                            Add-Member -InputObject $obj -MemberType NoteProperty -Name $addr -Value $rtt
+                        }
+                        if ($results.Summary.Duplicated -gt 0) {
+                            Write-Warning "Duplicate address detected on $vmhost ($vmk): $addr"
+                        }
                     }
+                    
+                    $report += $obj
                 }
             }
         }
@@ -709,6 +728,10 @@ function Test-VMHostNetworking {
             Write-Host 'Ping sweep complete. No failures detected.'
         } else {
             Write-Host "Ping sweep complete. Failures detected: $failures."
+        }
+        
+        if ($ShowReport) {
+            Write-Output $report
         }
     }
 }
