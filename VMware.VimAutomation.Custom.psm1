@@ -689,10 +689,13 @@ function Test-VMHostNetworking {
             $ping = $esxcli.network.diag.ping
             
             foreach ($vmk in $VMkernelPort) {
-                for ($i=0; $i -lt $Count; $i++) {
+                for ($i=1; $i -le $Count; $i++) {
                     $obj = New-Object -TypeName PSObject
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $VMHost
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name VMkernelPort -Value $vmk
+                    if ($Count -gt 1) {
+                        Add-Member -InputObject $obj -MemberType NoteProperty -Name Count -Value $i
+                    }
                     
                     foreach ($addr in $IpAddress) {
                         $params = $ping.CreateArgs()
