@@ -711,10 +711,10 @@ function Test-VMHostNetworking {
                         $rtt = $results.Summary.RoundtripAvgMS
                         if ($results.Summary.PacketLost -ne 0) {
                             Write-Warning "Ping failed on $vmhost ($vmk): $addr"
-                            Add-Member -InputObject $obj -MemberType NoteProperty -Name $addr -Value -
+                            Add-Member -InputObject $obj -MemberType NoteProperty -Name "$addr RTT(ms)" -Value -
                             $failures++
                         } else {
-                            Add-Member -InputObject $obj -MemberType NoteProperty -Name $addr -Value $rtt
+                            Add-Member -InputObject $obj -MemberType NoteProperty -Name "$addr RTT(ms)" -Value $rtt
                         }
                         if ($results.Summary.Duplicated -gt 0) {
                             Write-Warning "Duplicate address detected on $vmhost ($vmk): $addr"
