@@ -1007,7 +1007,7 @@ function Enable-VMHostIscsiAdapter {
         [string[]]$VMkernelPort,
         [Parameter(ValueFromPipelineByPropertyName)]
         [ValidateSet('Preferred', 'Required', 'Discouraged', 'Prohibited')]
-        [string]$ChapType = 'Preferred',
+        [string]$ChapType = 'Required',
         [Parameter(ValueFromPipelineByPropertyName)]
         [string]$ChapName,
         [Parameter(ValueFromPipelineByPropertyName)]
@@ -1046,7 +1046,7 @@ function Enable-VMHostIscsiAdapter {
             }
 
             if ($pscmdlet.ShouldProcess($h, 'Bind network VMkernel port to iSCSI adapter')) {
-                $iscsi_hba = Get-VMHostHba -VMHost $h -Type IScsi | Where-Object { $_.Model -eq 'iSCSI Software Adapter' }
+                $iscsi_hba = Get-VMHostHba -VMHost $h -Type IScsi
                 $esxcli = Get-EsxCli -VMHost $h -V2
                 $vmknic = $esxcli.iscsi.networkportal.list.Invoke().vmknic
                 foreach ($vmk in $VMkernelPort) {
