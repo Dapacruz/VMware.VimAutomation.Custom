@@ -44,4 +44,4 @@ Calculates the CPU ready percent average of virtual machines provided
 
 Installation
 --------------
-Coming soon.
+Download and unzip in $home\Documents\WindowsPowerShell\Modules\
