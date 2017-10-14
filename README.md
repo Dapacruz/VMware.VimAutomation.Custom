@@ -37,6 +37,9 @@ Displays the CDP info for each vmnic of VMHosts provided
 **Get-VMCpuReadyPercent**  
 Calculates the CPU ready percent average of virtual machines provided
 
+**Enable-VMHostIscsiAdapter**  
+Enables the software iSCSI adapter
+
 <br />
 
 Installation
