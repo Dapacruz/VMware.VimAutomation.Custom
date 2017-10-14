@@ -1026,6 +1026,7 @@ function Enable-VMHostIscsiAdapter {
         }
     }
     Process {
+        # TODO Add delayed ack and login timeout options
         foreach ($h in $VMHost) {
             $h = Get-VMHost $h
             
@@ -1074,9 +1075,7 @@ function Enable-VMHostIscsiAdapter {
                     }
                 }
             }
-
-            if ($pscmdlet.ShouldProcess($h, 'Enable CHAP')) {
-                if ($ChapType -and $ChapPassword) {
+                if ($ChapType -and $ChapPassword -and $pscmdlet.ShouldProcess($h, 'Enable CHAP')) {
                     'Enabling CHAP on {0}.' -f $iscsi_hba
                     # Set default chap name to iSCSI initiator name if not provided
                     if (-not $ChapName){
@@ -1099,7 +1098,6 @@ function Enable-VMHostIscsiAdapter {
                     }
                     Set-VMHostHba @params | Out-Null
                 }
-            }
         }
     }
     END {
