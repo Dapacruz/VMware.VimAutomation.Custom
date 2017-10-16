@@ -400,7 +400,7 @@ function New-VMHostNetworkingCsvTemplate {
 function Export-VMHostNetworkingToCsv {
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name','VMHosts')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name','VMHosts')]
         [string[]]$VMHost,
         [switch]$IncludeIscsiAdapter,
         [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
