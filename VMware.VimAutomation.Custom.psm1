@@ -285,7 +285,7 @@ function New-VMHostNetworkingCsvTemplate {
         [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
         [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv',
-        [string]$VMHostIscsiAdapterCsvPath = 'VMHost_Iscsi_Adapter.csv'
+        [string]$VMHostIscsiAdapterCsvPath = 'VMHost_iSCSI_Adapter.csv'
     )
     Begin {
         if (Test-Path -Path $VirtualSwitchesCsvPath) {
@@ -398,15 +398,15 @@ function New-VMHostNetworkingCsvTemplate {
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
 function Export-VMHostNetworkingToCsv {
-    # TODO Export software iSCSI adapter configuration
-    
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name')]
-        [string[]]$VMHosts,
-        [string]$VirtualSwitchesCsvPath = 'Virtual_Switches.csv',
-        [string]$VirtualPortGroupsCsvPath = 'Virtual_Port_Groups.csv',
-        [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
+        [Parameter(ValueFromPipeline=$True, ValueFromPipelineByPropertyName=$True, Mandatory=$True, Position=0)][Alias('Name','VMHosts')]
+        [string[]]$VMHost,
+        [switch]$IncludeIscsiAdapter,
+        [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
+        [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
+        [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv',
+        [string]$VMHostIscsiAdapterCsvPath = 'VMHost_iSCSI_Adapter.csv'
     )
     Begin {
         if (Test-Path -Path $VirtualSwitchesCsvPath) {
@@ -418,59 +418,99 @@ function Export-VMHostNetworkingToCsv {
         if (Test-Path -Path $VMHostNetworkAdaptersCsvPath) {
             Throw "$VMHostNetworkAdaptersCsvPath already exists!"
         }
+        if ($IncludeIscsiAdapter -and (Test-Path -Path $VMHostIscsiAdapterCsvPath)) {
+            Throw "$VMHostIscsiAdapterCsvPath already exists!"
+        }
         
         $virtual_switches = @()
         $virtual_port_groups = @()
         $vmhost_network_adapters = @()
+        $vmhost_iscsi_adapter = @()
     }
     Process {
         # Expand to full hostname in case wildcards are used
-        $VMHosts = Get-VMHost -Name $VMHosts
+        $VMHost = Get-VMHost -Name $VMHost
 
-        foreach ($VMHost in $VMHosts) {
+        foreach ($h in $VMHost) {
             # Export virtual switches
-            foreach ($s in Get-VirtualSwitch -VMHost $VMHost) {
+            foreach ($s in Get-VirtualSwitch -VMHost $h) {
                 $obj = New-Object PSObject
-                $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
-                $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $s.Name
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Name' -Value $s.Name
                 # Convert array to a comma separated string
-                $obj | Add-Member -MemberType NoteProperty -Name 'Nic' -Value "$($s.Nic)".Replace(' ', ',')
-                $obj | Add-Member -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Nic' -Value "$($s.Nic)".Replace(' ', ',')
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
 
                 $virtual_switches += $obj
             }
 
             # Export virtual port groups
-            foreach ($s in Get-VirtualPortGroup -VMHost $VMHost) {
+            foreach ($s in Get-VirtualPortGroup -VMHost $h) {
                 $nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
                 $obj = New-Object PSObject
-                $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
-                $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $s.Name
-                $obj | Add-Member -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
-                $obj | Add-Member -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
-                $obj | Add-Member -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
-                $obj | Add-Member -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
-                $obj | Add-Member -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Name' -Value $s.Name
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
                 
                 $virtual_port_groups += $obj
             }
 
             # Export host network adapters
-            # TODO Include vmnic teaming (active/standby/unused) settings
-            foreach ($s in Get-VMHostNetworkAdapter -VMHost $VMHost -VMKernel) {
+            foreach ($s in Get-VMHostNetworkAdapter -VMHost $h -VMKernel) {
                 $obj = New-Object PSObject
-                $obj | Add-Member -MemberType NoteProperty -Name 'VMHost' -Value $VMHost
-                $obj | Add-Member -MemberType NoteProperty -Name 'DeviceName' -Value $s.DeviceName
-                $obj | Add-Member -MemberType NoteProperty -Name 'PortGroup' -Value $s.PortGroupName
-                $obj | Add-Member -MemberType NoteProperty -Name 'IP' -Value $s.IP
-                $obj | Add-Member -MemberType NoteProperty -Name 'SubnetMask' -Value $s.SubnetMask
-                $obj | Add-Member -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
-                $obj | Add-Member -MemberType NoteProperty -Name 'VMotionEnabled' -Value $s.VMotionEnabled
-                $obj | Add-Member -MemberType NoteProperty -Name 'FaultToleranceLoggingEnabled' -Value $s.FaultToleranceLoggingEnabled
-                $obj | Add-Member -MemberType NoteProperty -Name 'ManagementTrafficEnabled' -Value $s.ManagementTrafficEnabled
-                $obj | Add-Member -MemberType NoteProperty -Name 'VsanTrafficEnabled' -Value $s.VsanTrafficEnabled
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'DeviceName' -Value $s.DeviceName
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'PortGroup' -Value $s.PortGroupName
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'IP' -Value $s.IP
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'SubnetMask' -Value $s.SubnetMask
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMotionEnabled' -Value $s.VMotionEnabled
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'FaultToleranceLoggingEnabled' -Value $s.FaultToleranceLoggingEnabled
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ManagementTrafficEnabled' -Value $s.ManagementTrafficEnabled
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VsanTrafficEnabled' -Value $s.VsanTrafficEnabled
 
                 $vmhost_network_adapters += $obj
+            }
+            
+            # Export iSCSI adapter
+            if ($IncludeIscsiAdapter) {
+                $iscsi_hba = Get-VMHostHba -VMHost $h -Type IScsi
+                if ($iscsi_hba) {
+                    $obj = New-Object PSObject
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
+                
+                    # iSCSI targets
+                    $iscsi_target = Get-IScsiHbaTarget -IScsiHba $iscsi_hba -Type Send | Select-Object -ExpandProperty Address
+                
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'IscsiTarget' -Value "$iscsi_target".Replace(' ', ',')
+                
+                    # Bound VMkernel ports
+                    $esxcli = Get-EsxCli -VMHost esxi01.cruz.dev -V2
+                    $vmknic = $esxcli.iscsi.networkportal.list.Invoke().vmknic
+                
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMkernelPort' -Value "$vmknic".Replace(' ', ',')
+                
+                    # CHAP type
+                
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ChapType' -Value  $iscsi_hba.AuthenticationProperties.ChapType
+                
+                    # CHAP credentials
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ChapName' -Value $iscsi_hba.AuthenticationProperties.ChapName
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ChapPassword' -Value ''
+                
+                    # Mutual CHAP status
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'MutualChapEnabled' -Value $iscsi_hba.AuthenticationProperties.MutualChapEnabled
+                
+                    # Mutual CHAP credentials
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'MutualChapName' -Value $iscsi_hba.AuthenticationProperties.MutualChapName
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'MutualChapPassword' -Value ''
+                
+                    $vmhost_iscsi_adapter += $obj
+                }
             }
         }
     }
@@ -480,6 +520,12 @@ function Export-VMHostNetworkingToCsv {
         $vmhost_network_adapters | Export-Csv -Path $VMHostNetworkAdaptersCsvPath -NoTypeInformation
     
         Invoke-Item -Path $VirtualSwitchesCsvPath, $VirtualPortGroupsCsvPath, $VMHostNetworkAdaptersCsvPath
+        
+        if ($IncludeIscsiAdapter) {
+            $vmhost_iscsi_adapter | Export-Csv $VMHostIscsiAdapterCsvPath -NoTypeInformation
+            
+            Invoke-Item -Path $VMHostIscsiAdapterCsvPath
+        }
     }
 }
 
@@ -504,8 +550,8 @@ function Import-VMHostNetworkingFromCsv {
     Param (
         [Parameter(ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true, Mandatory=$true, Position=0)][Alias('Name')]
         [string[]]$VMHosts,
-        [string]$VirtualSwitchesCsvPath = 'Virtual_Switches.csv',
-        [string]$VirtualPortGroupsCsvPath = 'Virtual_Port_Groups.csv',
+        [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
+        [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
     )
     Begin {
