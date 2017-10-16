@@ -281,9 +281,11 @@ function New-VMHostNetworkingCsvTemplate {
     [CmdletBinding()]
     Param (
         [switch]$NoSampleData,
-        [string]$VirtualSwitchesCsvPath = 'Virtual_Switches.csv',
-        [string]$VirtualPortGroupsCsvPath = 'Virtual_Port_Groups.csv',
-        [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv'
+        [switch]$IncludeIscsiAdapter,
+        [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
+        [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
+        [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv',
+        [string]$VMHostIscsiAdapterCsvPath = 'VMHost_Iscsi_Adapter.csv'
     )
     Begin {
         if (Test-Path -Path $VirtualSwitchesCsvPath) {
@@ -294,6 +296,9 @@ function New-VMHostNetworkingCsvTemplate {
         }
         if (Test-Path -Path $VMHostNetworkAdaptersCsvPath) {
             Throw "$VMHostNetworkAdaptersCsvPath already exists!"
+        }
+        if ($IncludeIscsiAdapter -and (Test-Path -Path $VMHostIscsiAdapterCsvPath)) {
+            Throw "$VMHostIscsiAdapterCsvPath already exists!"
         }
     }
     Process { 
@@ -354,6 +359,26 @@ function New-VMHostNetworkingCsvTemplate {
         ConvertFrom-Csv -InputObject $vmhost_network_adapaters -Delimiter ',' | Export-Csv $VMHostNetworkAdaptersCsvPath -NoTypeInformation
         
         Invoke-Item -Path $VirtualSwitchesCsvPath, $VirtualPortGroupsCsvPath, $VMHostNetworkAdaptersCsvPath
+        
+        # Generate iSCSI adapter template
+        if ($IncludeIscsiAdapter) {
+            if ($NoSampleData) {
+                $iscsi_adapter = @(
+                    'VMHost,IscsiTarget,VMkernelPort,ChapType,ChapName,ChapPassword,MutualChapEnabled,MutualChapName,MutualChapPassword'
+                    ',,,'
+                )
+            } else {
+                $iscsi_adapter = @(
+                    'VMHost,IscsiTarget,VMkernelPort,ChapType,ChapName,ChapPassword,MutualChapEnabled,MutualChapName,MutualChapPassword'
+                    'esx1,192.168.100.50,"vmk1,vmk2",Required,user,password,TRUE,user,password'
+                    'esx2,192.168.100.50,"vmk1,vmk2",Required,user,password,,,'
+                )
+            }
+        
+            ConvertFrom-Csv -InputObject $iscsi_adapter -Delimiter ',' | Export-Csv $VMHostIscsiAdapterCsvPath -NoTypeInformation
+            
+            Invoke-Item -Path $VMHostIscsiAdapterCsvPath
+        }
     }
     End {}
 }
