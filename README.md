@@ -17,7 +17,7 @@ Calculates the uptime of VMHosts provided, or VMHosts in the cluster provided
 Retrieves the datastore usage of VMHosts provided
 
 **New-VMHostNetworkingCsvTemplate**  
-Creates a host networking CSV import template to be used with Import-VMHostNetworkingFromCsv
+Creates a set of host networking CSV import templates to be used with Import-VMHostNetworkingFromCsv
 
 **Export-VMHostNetworkingToCsv**  
 Exports host networking of VMHosts provided
@@ -26,7 +26,7 @@ Exports host networking of VMHosts provided
 Imports host networking for VMHosts provided utilizing the output from Export-VMHostNetworking
 
 **Enable-VMHostIscsiAdapter**  
-Enables the software iSCSI adapter
+Enables and configures the software iSCSI adapter
 
 **Test-VMHostNetworking**  
 Pings addresses from each provided VMkernel port of VMHosts provided
