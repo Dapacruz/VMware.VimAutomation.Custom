@@ -22,7 +22,7 @@
         Calculate the virtual to physcial CPU ratio
         Display the CDP info for each vmnic
         Calculate virtual machine CPU ready percent average
-        Enable the software iSCSI adapter
+        Enable and configure the software iSCSI adapter
 #>
 
 
