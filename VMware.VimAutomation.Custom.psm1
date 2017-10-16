@@ -1172,6 +1172,6 @@ function Enable-VMHostIscsiAdapter {
         }
     }
     END {
-        Write-Host "`nSoftware iSCSI adapter enablement and configuration is complete."
+        Write-Host "Software iSCSI adapter enablement and configuration is complete."
     }
 }
