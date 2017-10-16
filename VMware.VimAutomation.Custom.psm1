@@ -271,9 +271,17 @@ function Get-VMHostDatastores {
         Creates a host networking CSV import template to be used with Import-VMHostNetworkingFromCsv
         .Parameter NoSampleData
         Creates a host networking CSV import template without sample data
+        .Parameter IncludeIscsiAdapter
+        Include the software iSCSI adapter
         .Example
         New-VMHostNetworkingCsvTemplate
-        Creates a host networking CSV import template with sample data
+        Creates a set of host networking CSV import templates with sample data
+        .Example
+        New-VMHostNetworkingCsvTemplate -IncludeIscsiAdapter
+        Creates a set of host networking CSV import templates, including a software iSCSI adapter template, with sample data
+        .Example
+        New-VMHostNetworkingCsvTemplate -NoSampleData
+        Creates a set of host networking CSV import templates without sample data
         .Link
         https://github.com/Dapacr
 #>
