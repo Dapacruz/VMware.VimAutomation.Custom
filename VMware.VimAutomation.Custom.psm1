@@ -1050,7 +1050,6 @@ function Get-VMCpuReadyPercent {
     Process {
         foreach ($m in $VM) {
             $m = Get-VM $m
-            $num_cpu = $m.NumCpu
             
             # Skip VMs that are not powered on
             if ($m.PowerState -ne 'PoweredOn') {
@@ -1073,10 +1072,11 @@ function Get-VMCpuReadyPercent {
             
             # Calculate CPU Ready percent
             $cpu_summation_avg = ($stat | Measure-Object -Property Value -Average).Average
-            [double]$cpu_ready_percent = '{0:N3}' -f ((($cpu_summation_avg / ($default_update_interval * 1000)) * 100) / $num_cpu)
+            [double]$cpu_ready_percent = '{0:N3}' -f ((($cpu_summation_avg / ($default_update_interval * 1000)) * 100) / $m.NumCpu)
             
             $obj = New-Object -TypeName PSObject
             Add-Member -InputObject $obj -MemberType NoteProperty -Name Name -Value $stat.Entity[0]
+            Add-Member -InputObject $obj -MemberType NoteProperty -Name Cores -Value $($m.NumCpu * $m.CoresPerSocket)
             Add-Member -InputObject $obj -MemberType NoteProperty -Name CpuReady -Value $cpu_ready_percent
     
             $status = switch ($cpu_ready_percent) {
