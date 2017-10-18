@@ -1047,7 +1047,7 @@ function Get-VMHostNetworkLldpInfo {
             foreach ($pnic in $Nic) {
                 $obj = New-Object -TypeName PSObject
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name vmnic -Value $pnic
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name Nic -Value $pnic
                 
                 try {
                     # Capture one LLDP frame
