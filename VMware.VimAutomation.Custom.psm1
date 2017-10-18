@@ -9,7 +9,7 @@
         PowerShell version: 5.1
 
         Required modules:
-        None.
+        Posh-SSH (Get-VMHostNetworkLldpInfo).
 
         Features:
         Get/Start/Stop ESXi host SSH service
@@ -21,6 +21,7 @@
         Test ESXi host networking
         Calculate the virtual to physcial CPU ratio
         Display the CDP info for each vmnic
+        Display the LLDP info for each vmnic
         Calculate virtual machine CPU ready percent average
         Enable and configure the software iSCSI adapter
 #>
@@ -984,6 +985,108 @@ function Get-VMHostNetworkCdpInfo {
                     }
                 }
             }
+        }
+    }
+    End {
+        Write-Output $results
+    }
+}
+
+
+<#
+        .Synopsis
+        Display the LLDP info for each vmnic
+        .Description
+        Display the LLDP info for each vmnic of hosts provided. The Posh-SSH module is required. An SSH connection is established with each host to capture LLDP info
+        .Parameter VMHost
+        The host you want to display the vmnic LLDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
+        .Parameter User
+        A local host user with permission to establish an SSH connection. The user 'root' is default
+        .Parameter IncludeRawOutput
+        Include the raw ASCII output in the event that a regex replace produces invalid output
+        .Example
+        PS C:\>Get-VMHostNetworkLldpInfo -VMHost esxi*
+
+        Displays the vmnic LLDP info of all ESXi hosts with names that begin with 'esxi'
+        .Link
+        https://github.com/Dapacruz/VMware.VimAutomation.Custom
+#>
+function Get-VMHostNetworkLldpInfo {
+    [CmdletBinding()]
+    Param (
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Position=0)][Alias('Name', 'VMHosts')]
+        [string[]]$VMHost = '*',
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [string[]]$Nic,
+        [Parameter(ValueFromPipeline)][Alias('UserName')]
+        [string]$User = 'root',
+        [switch]$IncludeRawOutput
+    )
+    Begin {
+        if (-not (Get-Module -Name Posh-SSH -ListAvailable)) {
+            throw "The Posh-SSH module is required. Execute 'Install-Module -Name Posh-SSH -Scope CurrentUser' to install it."
+        }
+        $credential = Get-Credential -UserName $User -Message 'Enter host SSH credentials.'
+        $Nic = (Get-VMHostNetworkAdapter -VMHost sac0esxi01* -Physical -Name $Nic).Name
+        $results = @()
+    }
+    Process {
+        # Expand to full hostname in case wildcards are used
+        $VMHost = Get-VMHost -Name $VMHost
+
+        foreach ($h in $VMHost) {
+            $h_addr = Get-VMHostNetworkAdapter -VMHost $h -VMKernel | Where-Object { $_.ManagementTrafficEnabled -eq $true } | Select-Object -ExpandProperty IP
+
+            try {
+                $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -ErrorAction Stop
+            } catch { 
+                Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
+                continue
+            }
+
+            foreach ($pnic in $Nic) {
+                $obj = New-Object -TypeName PSObject
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name vmnic -Value $pnic
+                
+                try {
+                    # Capture one LLDP frame
+                    $cmd = "pktcap-uw --uplink $pnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
+                    
+                    # Convert the packet capture to hex and save the ASCII content
+                    $cmd = "hexdump -C /tmp/vmnic_lldp.pcap | awk -F'|' '{printf `$2}'"
+                    $raw = Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop
+                } catch {
+                    Write-Warning "Operation timed out while listening for LLDP on $h ($pnic)."
+                    $raw = ''
+                }
+                
+                $regex = ".*?([etg][tei][a-z]*\s?-?(\d+/)+\d+)(.\.+.{1,2}\.+)+([\w-_]+)\..*"
+                
+                $device_id = $raw.Output -replace $regex, '$4' -as [string]
+                if ($device_id) {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name DeviceId -Value $device_id
+                } else {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name DeviceId -Value 'n/a'
+                }
+                
+                $port_id = $raw.Output -replace $regex, '$1' -as [string]
+                if ($port_id) {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value $port_id                    
+                } else {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value 'n/a'
+                }
+                
+                # Include the raw output if a regex replace fails
+                if ($IncludeRawOutput -or -not $device_id -or -not $port_id) {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name RawOutput -Value $($raw.Output -as [string])
+                }
+                
+                $results += $obj
+            }
+            
+            Remove-SSHSession -SessionId $ssh.SessionId | Out-Null
         }
     }
     End {
