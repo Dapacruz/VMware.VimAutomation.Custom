@@ -37,6 +37,9 @@ Calculates the virtual to physical CPU ratio of VMHosts provided
 **Get-VMHostNetworkCdpInfo**  
 Displays the CDP info for each vmnic of VMHosts provided
 
+**Get-VMHostNetworkLldpInfo**  
+Displays the LLDP info for each vmnic of VMHosts provided
+
 **Get-VMCpuReadyPercent**  
 Calculates the CPU ready percent average of virtual machines provided
 
