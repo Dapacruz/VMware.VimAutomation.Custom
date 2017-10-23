@@ -2,23 +2,22 @@
 <Configuration>
 <ViewDefinitions>
 <View>
-    <Name>Toggl.Report.Detailed</Name>
+    <Name>VMware.VimAutomation.Custom.Get.VMCpuReadyPercent</Name>
     <ViewSelectedBy>
-        <TypeName>Toggl.Report.Detailed</TypeName>
+        <TypeName>VMware.VimAutomation.Custom.Get.VMCpuReadyPercent</TypeName>
     </ViewSelectedBy>
     <TableControl>
         <TableHeaders>
             <TableColumnHeader>
-                <Width>10</Width>
-            </TableColumnHeader>
-            <TableColumnHeader>
-                <Width>15</Width>
-            </TableColumnHeader>
-            <TableColumnHeader>
-                <Width>6</Width>
-            </TableColumnHeader>
-            <TableColumnHeader>
                 <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>5</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>8</Width>
+                <Alignment>Right</Alignment>
             </TableColumnHeader>
             <TableColumnHeader/>
         </TableHeaders>
@@ -26,19 +25,16 @@
             <TableRowEntry>
                 <TableColumnItems>
                     <TableColumnItem>
-                        <PropertyName>Date</PropertyName>
+                        <PropertyName>Name</PropertyName>
                     </TableColumnItem>
                     <TableColumnItem>
-                        <PropertyName>Client</PropertyName>
+                        <PropertyName>Cores</PropertyName>
                     </TableColumnItem>
                     <TableColumnItem>
-                        <PropertyName>Ticket</PropertyName>
+                        <PropertyName>CpuReady</PropertyName>
                     </TableColumnItem>
                     <TableColumnItem>
-                        <PropertyName>Project</PropertyName>
-                    </TableColumnItem>
-                    <TableColumnItem>
-                        <PropertyName>Description</PropertyName>
+                        <PropertyName>Status</PropertyName>
                     </TableColumnItem>
                 </TableColumnItems>
             </TableRowEntry>
