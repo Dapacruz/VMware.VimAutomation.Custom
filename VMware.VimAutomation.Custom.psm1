@@ -821,6 +821,7 @@ function Test-VMHostNetworking {
             foreach ($vmk in $VMkernelPort) {
                 for ($i=1; $i -le $Count; $i++) {
                     $obj = New-Object -TypeName PSObject
+                    $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Test.VMHostNetworking')
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $VMHost
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name VMkernelPort -Value $vmk
                     if ($Count -gt 1) {
@@ -916,6 +917,7 @@ function Get-VMHostCpuRatio {
             }
             
             $obj = New-Object PSObject
+            $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostCpuRatio')
             $obj | Add-Member -MemberType NoteProperty -Name 'Name' -Value $h.Name
             $obj | Add-Member -MemberType NoteProperty -Name 'vCPUs' -Value $vcpu_count
             $obj | Add-Member -MemberType NoteProperty -Name 'PhysicalCores' -Value $pcpu_core_count
@@ -971,6 +973,7 @@ function Get-VMHostNetworkCdpInfo {
             
                     foreach ($hint in $pnic_info) {
                         $obj = New-Object -TypeName PSObject
+                        $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkCdpInfo')
                         $obj | Add-Member -MemberType NoteProperty -Name VMHost -Value $hv.Name
                         $obj | Add-Member -MemberType NoteProperty -Name Device -Value $pnic.Device
                         if ($hint.ConnectedSwitchPort) {
@@ -1046,6 +1049,7 @@ function Get-VMHostNetworkLldpInfo {
 
             foreach ($pnic in $Nic) {
                 $obj = New-Object -TypeName PSObject
+                $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name Nic -Value $pnic
                 
@@ -1178,6 +1182,7 @@ function Get-VMCpuReadyPercent {
             [double]$cpu_ready_percent = '{0:N3}' -f ((($cpu_summation_avg / ($default_update_interval * 1000)) * 100) / $m.NumCpu)
             
             $obj = New-Object -TypeName PSObject
+            $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMCpuReadyPercent')
             Add-Member -InputObject $obj -MemberType NoteProperty -Name Name -Value $stat.Entity[0]
             Add-Member -InputObject $obj -MemberType NoteProperty -Name Cores -Value $($m.NumCpu * $m.CoresPerSocket)
             Add-Member -InputObject $obj -MemberType NoteProperty -Name CpuReady -Value $cpu_ready_percent
@@ -1335,3 +1340,6 @@ function Enable-VMHostIscsiAdapter {
         Write-Host "Software iSCSI adapter enablement and configuration is complete."
     }
 }
+
+
+Update-FormatData -PrependPath $PSScriptRoot\format.ps1xml
