@@ -41,5 +41,62 @@
         </TableRowEntries>
     </TableControl>
 </View>
+<View>
+    <Name>VMware.VimAutomation.Custom.Get.VMHostCpuRatio</Name>
+    <ViewSelectedBy>
+        <TypeName>VMware.VimAutomation.Custom.Get.VMHostCpuRatio</TypeName>
+    </ViewSelectedBy>
+    <TableControl>
+        <TableHeaders>
+            <TableColumnHeader>
+                <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>13</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>13</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>13</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>12</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>12</Width>
+                <Alignment>Right</Alignment>
+            </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+            <TableRowEntry>
+                <TableColumnItems>
+                    <TableColumnItem>
+                        <PropertyName>Name</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>vCPUs</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>PhysicalCores</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>PhysicalRatio</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>LogicalCores</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>LogicalRatio</PropertyName>
+                    </TableColumnItem>
+                </TableColumnItems>
+            </TableRowEntry>
+        </TableRowEntries>
+    </TableControl>
+</View>
 </ViewDefinitions>
 </Configuration>
