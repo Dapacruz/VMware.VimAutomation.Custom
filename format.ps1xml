@@ -98,5 +98,81 @@
         </TableRowEntries>
     </TableControl>
 </View>
+<View>
+    <Name>VMware.VimAutomation.Custom.Get.VMHostNetworkCdpInfo</Name>
+    <ViewSelectedBy>
+        <TypeName>VMware.VimAutomation.Custom.Get.VMHostNetworkCdpInfo</TypeName>
+    </ViewSelectedBy>
+    <TableControl>
+        <TableHeaders>
+            <TableColumnHeader>
+                <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>7</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader/>
+        </TableHeaders>
+        <TableRowEntries>
+            <TableRowEntry>
+                <TableColumnItems>
+                    <TableColumnItem>
+                        <PropertyName>VMHost</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>Nic</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>Switch</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>PortId</PropertyName>
+                    </TableColumnItem>
+                </TableColumnItems>
+            </TableRowEntry>
+        </TableRowEntries>
+    </TableControl>
+</View>
+<View>
+    <Name>VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo</Name>
+    <ViewSelectedBy>
+        <TypeName>VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo</TypeName>
+    </ViewSelectedBy>
+    <TableControl>
+        <TableHeaders>
+            <TableColumnHeader>
+                <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>7</Width>
+            </TableColumnHeader>
+            <TableColumnHeader>
+                <Width>20</Width>
+            </TableColumnHeader>
+            <TableColumnHeader/>
+        </TableHeaders>
+        <TableRowEntries>
+            <TableRowEntry>
+                <TableColumnItems>
+                    <TableColumnItem>
+                        <PropertyName>VMHost</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>Nic</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>Switch</PropertyName>
+                    </TableColumnItem>
+                    <TableColumnItem>
+                        <PropertyName>PortId</PropertyName>
+                    </TableColumnItem>
+                </TableColumnItems>
+            </TableRowEntry>
+        </TableRowEntries>
+    </TableControl>
+</View>
 </ViewDefinitions>
 </Configuration>

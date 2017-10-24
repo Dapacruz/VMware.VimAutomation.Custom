@@ -923,7 +923,7 @@ function Get-VMHostCpuRatio {
             $obj | Add-Member -MemberType NoteProperty -Name 'PhysicalCores' -Value $pcpu_core_count
             $obj | Add-Member -MemberType NoteProperty -Name 'PhysicalRatio' -Value $('{0:N3}:1' -f $physical_ratio)
             $obj | Add-Member -MemberType NoteProperty -Name 'LogicalCores' -Value $pcpu_thread_count
-            $obj | Add-Member -MemberType NoteProperty -Name 'LogicalRatio' -Value $('{0:N3}:1' -f $logical_ratio)
+             $obj | Add-Member -MemberType NoteProperty -Name 'LogicalRatio' -Value $('{0:N3}:1' -f $logical_ratio)
                                     
             $results += $obj
         }
@@ -972,13 +972,13 @@ function Get-VMHostNetworkCdpInfo {
                         $obj = New-Object -TypeName PSObject
                         $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkCdpInfo')
                         $obj | Add-Member -MemberType NoteProperty -Name VMHost -Value $hv.Name
-                        $obj | Add-Member -MemberType NoteProperty -Name Device -Value $pnic.Device
+                        $obj | Add-Member -MemberType NoteProperty -Name Nic -Value $pnic.Device
                         if ($hint.ConnectedSwitchPort) {
-                            $obj | Add-Member -MemberType NoteProperty -Name DeviceId -Value $hint.ConnectedSwitchPort.DevId
+                            $obj | Add-Member -MemberType NoteProperty -Name Switch -Value $hint.ConnectedSwitchPort.DevId
                             $obj | Add-Member -MemberType NoteProperty -Name PortId -Value $hint.ConnectedSwitchPort.PortId
                         }
                         else {
-                            $obj | Add-Member -MemberType NoteProperty -Name DeviceId -Value 'n/a'
+                            $obj | Add-Member -MemberType NoteProperty -Name Switch -Value 'n/a'
                             $obj | Add-Member -MemberType NoteProperty -Name PortId -Value  'n/a'
                         }
                         $results += $obj
@@ -1002,12 +1002,14 @@ function Get-VMHostNetworkCdpInfo {
         The host you want to display the vmnic LLDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Parameter User
         A local host user with permission to establish an SSH connection. The user 'root' is default
-        .Parameter IncludeRawOutput
-        Include the raw ASCII output in the event that a regex replace produces invalid output
         .Example
-        PS C:\>Get-VMHostNetworkLldpInfo -VMHost esxi*
+        PS C:\>Get-VMHostNetworkLldpInfo -VMHost esxi* -Nic vmnic0, vmnic1
 
         Displays the vmnic LLDP info of all ESXi hosts with names that begin with 'esxi'
+        .Example
+        PS C:\>Get-VMHostNetworkLldpInfo -VMHost esxi* -Nic *
+
+        Displays the vmnic LLDP info, for all vmnics, of all ESXi hosts with names that begin with 'esxi'
         .Link
         https://github.com/Dapacruz/VMware.VimAutomation.Custom
 #>
@@ -1019,20 +1021,19 @@ function Get-VMHostNetworkLldpInfo {
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Nic,
         [Parameter(ValueFromPipeline)][Alias('UserName')]
-        [string]$User = 'root',
-        [switch]$IncludeRawOutput
+        [string]$User = 'root'
     )
     Begin {
         if (-not (Get-Module -Name Posh-SSH -ListAvailable)) {
             throw "The Posh-SSH module is required. Execute 'Install-Module -Name Posh-SSH -Scope CurrentUser' to install it."
         }
         $credential = Get-Credential -UserName $User -Message 'Enter host SSH credentials.'
-        $Nic = (Get-VMHostNetworkAdapter -VMHost sac0esxi01* -Physical -Name $Nic).Name
         $results = @()
     }
     Process {
         # Expand to full hostname in case wildcards are used
         $VMHost = Get-VMHost -Name $VMHost
+        $Nic = (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $Nic).Name
 
         foreach ($h in $VMHost) {
             $h_addr = Get-VMHostNetworkAdapter -VMHost $h -VMKernel | Where-Object { $_.ManagementTrafficEnabled -eq $true } | Select-Object -ExpandProperty IP
@@ -1063,26 +1064,24 @@ function Get-VMHostNetworkLldpInfo {
                     $raw = ''
                 }
                 
-                $regex = ".*?([etg][tei][a-z]*\s?-?(\d+/)+\d+)(.\.+.{1,2}\.+)+([\w-_]+)\..*"
+                $regex = ".*?([etg][tei][\-a-z]*\s?-?(\d+/)+\d+)(\.+.{1,2}\.+.*?)+\.*([\w-_]{5,}).*"
                 
                 $device_id = $raw.Output -replace $regex, '$4' -as [string]
-                if ($device_id) {
-                    Add-Member -InputObject $obj -MemberType NoteProperty -Name DeviceId -Value $device_id
+                if ($device_id -and $device_id -notmatch '^\.') {
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value $device_id
                 } else {
-                    Add-Member -InputObject $obj -MemberType NoteProperty -Name DeviceId -Value 'n/a'
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value 'n/a'
                 }
                 
                 $port_id = $raw.Output -replace $regex, '$1' -as [string]
-                if ($port_id) {
+                if ($port_id -and $device_id -notmatch '^\.') {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value $port_id                    
                 } else {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value 'n/a'
                 }
                 
-                # Include the raw output if a regex replace fails
-                if ($IncludeRawOutput -or -not $device_id -or -not $port_id) {
-                    Add-Member -InputObject $obj -MemberType NoteProperty -Name RawOutput -Value $($raw.Output -as [string])
-                }
+                # Include the raw output in case regex replace fails
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name RawOutput -Value $($raw.Output -as [string])
                 
                 $results += $obj
             }
