@@ -997,7 +997,7 @@ function Get-VMHostNetworkCdpInfo {
         .Synopsis
         Display the LLDP info for each vmnic
         .Description
-        Display the LLDP info for each vmnic of hosts provided. The Posh-SSH module is required. An SSH connection is established with each host to capture LLDP info
+        Display the LLDP info for each vmnic of hosts provided. The Posh-SSH module is required. An SSH connection is established with each host to capture LLDP info. If the switch name or port ID are missing/incorrect, view the RawOutput property
         .Parameter VMHost
         The host you want to display the vmnic LLDP info of. Can be a single host or multiple hosts provided by the pipeline. Wildcards are supported
         .Parameter User
