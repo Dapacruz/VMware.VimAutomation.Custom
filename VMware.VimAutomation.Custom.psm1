@@ -1067,7 +1067,7 @@ function Get-VMHostNetworkLldpInfo {
                 $regex = ".*?([etg][tei][\-a-z]*\s?-?(\d+/)+\d+)(\.+.{1,2}\.+.*?)+\.*([\w-_]{5,}).*"
                 
                 $device_id = $raw.Output -replace $regex, '$4' -as [string]
-                if ($device_id -and $device_id -notmatch '^\.') {
+                if ($device_id -and $device_id -notmatch '^\.|gigabit|ethernet|ge-*\d*' -and $device_id -notmatch $h) {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value $device_id
                 } else {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value 'n/a'
