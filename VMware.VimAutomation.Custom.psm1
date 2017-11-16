@@ -1033,7 +1033,7 @@ function Get-VMHostNetworkLldpInfo {
     Process {
         # Expand to full hostname in case wildcards are used
         $VMHost = Get-VMHost -Name $VMHost
-        $Nic = (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $Nic).Name
+        $Nic = (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $Nic | Select-Object -Unique).Name
 
         foreach ($h in $VMHost) {
             $h_addr = Get-VMHostNetworkAdapter -VMHost $h -VMKernel | Where-Object { $_.ManagementTrafficEnabled -eq $true } | Select-Object -ExpandProperty IP
