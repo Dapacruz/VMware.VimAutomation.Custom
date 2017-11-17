@@ -1032,11 +1032,11 @@ function Get-VMHostNetworkLldpInfo {
     }
     Process {
         # Expand to full hostname in case wildcards are used
-        $VMHost = Get-VMHost -Name $VMHost
-        $Nic = (Get-VMHostNetworkAdapter -VMHost $VMHost -Physical -Name $Nic | Select-Object -Unique).Name
+        $VMHost = Get-VMHost -Name $VMHost | Sort-Object -Property Name
 
         foreach ($h in $VMHost) {
-            $h_addr = Get-VMHostNetworkAdapter -VMHost $h -VMKernel | Where-Object { $_.ManagementTrafficEnabled -eq $true } | Select-Object -ExpandProperty IP
+            $h_addr = (Get-VMHostNetworkAdapter -VMHost $h -VMKernel).Where{$_.ManagementTrafficEnabled -eq $true}.IP
+            $Nic = Get-VMHostNetworkAdapter -VMHost $h -Physical -Name $Nic | Sort-Object -Property Name
 
             try {
                 $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -ErrorAction Stop
