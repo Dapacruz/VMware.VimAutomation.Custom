@@ -1027,8 +1027,11 @@ function Get-VMHostNetworkLldpInfo {
         if (-not (Get-Module -Name Posh-SSH -ListAvailable)) {
             throw "The Posh-SSH module is required. Execute 'Install-Module -Name Posh-SSH -Scope CurrentUser' to install it."
         }
+
         $credential = Get-Credential -UserName $User -Message 'Enter host SSH credentials.'
         $results = @()
+
+        trap { Get-SSHSession | Remove-SSHSession }
     }
     Process {
         # Expand to full hostname in case wildcards are used
@@ -1045,43 +1048,57 @@ function Get-VMHostNetworkLldpInfo {
                 continue
             }
 
-            foreach ($pnic in $Nic) {
+            foreach ($vmnic in $Nic) {
                 $obj = New-Object -TypeName PSObject
                 $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name Nic -Value $pnic
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name Nic -Value $vmnic
                 
                 try {
                     # Capture one LLDP frame
-                    $cmd = "pktcap-uw --uplink $pnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
+                    $cmd = "pktcap-uw --uplink $vmnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
                     Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
                     
                     # Convert the packet capture to hex and save the ASCII content
-                    $cmd = "hexdump -C /tmp/vmnic_lldp.pcap | awk -F'|' '{printf `$2}'"
+                    $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Port Description TLV'"
                     $raw = Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop
+
+                    # Remove capture files
+                    $cmd = "rm /tmp/vmnic_lldp.pcap"
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
                 } catch {
-                    Write-Warning "Operation timed out while listening for LLDP on $h ($pnic)."
+                    Write-Warning "Operation timed out while listening for LLDP on $h ($vmnic)."
                     $raw = ''
                 }
+
+                foreach ($tlv in $raw.Output) {
+                    $tlv = $tlv.Trim()
+
+                    $regex = "System Name TLV.*?`:\s(.*)"
+                    if ($tlv -match $regex) {
+                        $device_id = $tlv -replace $regex, '$1' -as [string]
+                    }
+
+                    $regex = "Port Description TLV.*?`:\s(.*)"
+                    if ($tlv -match $regex) {
+                        $port_id = $tlv -replace $regex, '$1' -as [string]
+                    }
+                }
                 
-                $regex = ".*?([etg][tei][\-a-z]*\s?-?(\d+/)+\d+)(\.+.{1,2}\.+.*?)+\.*([\w-_]{5,}).*"
-                
-                $device_id = $raw.Output -replace $regex, '$4' -as [string]
-                if ($device_id -and $device_id -notmatch '^\.|gigabit|ethernet|ge-*\d*' -and $device_id -notmatch $h) {
+                if ($device_id) {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value $device_id
                 } else {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name Switch -Value 'n/a'
                 }
                 
-                $port_id = $raw.Output -replace $regex, '$1' -as [string]
-                if ($port_id -and $device_id -notmatch '^\.') {
+                if ($port_id) {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value $port_id                    
                 } else {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name PortId -Value 'n/a'
                 }
                 
                 # Include the raw output in case regex replace fails
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name RawOutput -Value $($raw.Output -as [string])
+                Add-Member -InputObject $obj -MemberType NoteProperty -Name RawOutput -Value ($raw.Output -as [string]).Trim()
                 
                 $results += $obj
             }
