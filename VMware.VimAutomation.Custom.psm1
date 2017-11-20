@@ -591,13 +591,13 @@ function Import-VMHostNetworkingFromCsv {
         }
         if ($IncludeIscsiAdapter -and (Test-Path -Path $VMHostIscsiAdapterCsvPath)) {
             $vmhost_iscsi_adapter = Import-Csv $VMHostIscsiAdapterCsvPath
-        } else {
+        } elseif ($IncludeIscsiAdapter) {
             Throw "$VMHostIscsiAdapterCsvPath not found!"
         }
             }
     Process {
         # Expand to full hostname in case wildcards are used
-        $VMHost = Get-VMHost -Name $VMHost
+        $VMHost = Get-VMHost -Name $VMHost | Sort-Object -Property Name
 
         foreach ($h in $VMHost) {
             Write-Host "`nSetting up networking on $h ..."
