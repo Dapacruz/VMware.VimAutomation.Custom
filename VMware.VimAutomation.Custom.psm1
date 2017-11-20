@@ -745,20 +745,31 @@ function Import-VMHostNetworkingFromCsv {
                         continue
                     }
                         
-                    $params = @{
-                        'VMHost'= $h
-                        'IscsiTarget'=$a.IscsiTarget.Split(',').Trim()
-                        'VMkernelPort'=$a.VMkernelPort.Split(',').Trim()
-                        'ChapType'=$a.ChapType
-                        'ChapName'=$a.ChapName
-                        'ChapPassword'=$a.ChapPassword
-                        'MutualChapEnabled'=$false
+                    if ($a.Chaptype -eq 'Prohibited') {
+                        $params = @{
+                            'VMHost'= $h
+                            'IscsiTarget'=$a.IscsiTarget.Split(',').Trim()
+                            'VMkernelPort'=$a.VMkernelPort.Split(',').Trim()
+                            'ChapType'=$a.ChapType
+                            'MutualChapEnabled'=$false
+                        }
+                    } else {
+                        $params = @{
+                            'VMHost'= $h
+                            'IscsiTarget'=$a.IscsiTarget.Split(',').Trim()
+                            'VMkernelPort'=$a.VMkernelPort.Split(',').Trim()
+                            'ChapType'=$a.ChapType
+                            'ChapName'=$a.ChapName
+                            'ChapPassword'=$a.ChapPassword
+                            'MutualChapEnabled'=$false
+                        }
+                        if ($a.MutualChapEnabled -eq 'true') {
+                            $params['MutualChapEnabled'] = $true
+                            $params.Add('MutualChapName', $a.MutualChapName)
+                            $params.Add('MutualChapPassword', $a.MutualChapPassword)
+                        }
                     }
-                    if ($a.MutualChapEnabled -eq 'true') {
-                        $params['MutualChapEnabled'] = $true
-                        $params.Add('MutualChapName', $a.MutualChapName)
-                        $params.Add('MutualChapPassword', $a.MutualChapPassword)
-                    }
+                    
                     Enable-VMHostIscsiAdapter @params -Confirm:$false
                 }
             }
