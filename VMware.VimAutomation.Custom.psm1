@@ -1208,7 +1208,7 @@ function Get-VMCpuReadyPercent {
             $obj = New-Object -TypeName PSObject
             $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMCpuReadyPercent')
             Add-Member -InputObject $obj -MemberType NoteProperty -Name Name -Value $stat.Entity[0]
-            Add-Member -InputObject $obj -MemberType NoteProperty -Name Cores -Value $($m.NumCpu * $m.CoresPerSocket)
+            Add-Member -InputObject $obj -MemberType NoteProperty -Name Cores -Value $($m.NumCpu)
             Add-Member -InputObject $obj -MemberType NoteProperty -Name CpuReady -Value $cpu_ready_percent
     
             $status = switch ($cpu_ready_percent) {
