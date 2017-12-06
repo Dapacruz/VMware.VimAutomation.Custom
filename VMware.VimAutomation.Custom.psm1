@@ -503,7 +503,7 @@ function Export-VMHostNetworkingToCsv {
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name 'IscsiTarget' -Value "$iscsi_target".Replace(' ', ',')
                 
                     # Bound VMkernel ports
-                    $esxcli = Get-EsxCli -VMHost esxi01.cruz.dev -V2
+                    $esxcli = Get-EsxCli -VMHost $h -V2
                     $vmknic = $esxcli.iscsi.networkportal.list.Invoke().vmknic
                 
                     Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMkernelPort' -Value "$vmknic".Replace(' ', ',')
