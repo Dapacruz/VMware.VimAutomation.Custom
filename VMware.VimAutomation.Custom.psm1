@@ -1057,12 +1057,12 @@ function Get-VMHostNetworkLldpInfo {
             Write-Host 'Establisting an SSH connection ... ' -NoNewline
             try {
                 $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -AcceptKey:$AcceptKey -ErrorAction Stop
+                Write-Host 'success'
             } catch { 
                 Write-Host 'fail'
                 Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
                 continue
             }
-            Write-Host 'success'
 
             foreach ($vmnic in $Nic) {
                 Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
