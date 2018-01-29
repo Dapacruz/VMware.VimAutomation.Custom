@@ -1032,7 +1032,8 @@ function Get-VMHostNetworkLldpInfo {
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [string[]]$Nic,
         [Parameter(ValueFromPipeline)][Alias('UserName')]
-        [string]$User = 'root'
+        [string]$User = 'root',
+        [boolean]$AcceptKey = $true
     )
     Begin {
         if (-not (Get-Module -Name Posh-SSH -ListAvailable)) {
@@ -1053,7 +1054,7 @@ function Get-VMHostNetworkLldpInfo {
             $Nic = Get-VMHostNetworkAdapter -VMHost $h -Physical -Name $Nic | Sort-Object -Property Name
 
             try {
-                $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -ErrorAction Stop
+                $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -AcceptKey:$AcceptKey -ErrorAction Stop
             } catch { 
                 Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
                 continue
