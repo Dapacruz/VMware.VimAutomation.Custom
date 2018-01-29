@@ -1065,13 +1065,17 @@ function Get-VMHostNetworkLldpInfo {
             }
 
             foreach ($vmnic in $Nic) {
-                Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
+                $raw = ''
+                $device_id = ''
+                $port_id = ''
+
                 $obj = New-Object -TypeName PSObject
                 $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name Nic -Value $vmnic
                 
                 try {
+                    Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
                     # Capture one LLDP frame
                     $cmd = "pktcap-uw --uplink $vmnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
                     Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
@@ -1079,15 +1083,15 @@ function Get-VMHostNetworkLldpInfo {
                     # Convert the packet capture to hex and save the ASCII content
                     $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Port Description TLV'"
                     $raw = Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop
-
-                    # Remove capture files
-                    $cmd = "rm /tmp/vmnic_lldp.pcap"
-                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
+                    
                     Write-Host 'success'
                 } catch {
                     Write-Host 'fail'
                     Write-Warning "Operation timed out while listening for LLDP on $h ($vmnic)."
-                    $raw = ''
+                } finally {
+                    # Remove capture files
+                    $cmd = "rm /tmp/vmnic_lldp.pcap"
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
                 }
 
                 foreach ($tlv in $raw.Output) {
