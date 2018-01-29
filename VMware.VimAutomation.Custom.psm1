@@ -1050,17 +1050,21 @@ function Get-VMHostNetworkLldpInfo {
         $VMHost = Get-VMHost -Name $VMHost | Sort-Object -Property Name
 
         foreach ($h in $VMHost) {
+            'Host: {0}' -f $h
             $h_addr = (Get-VMHostNetworkAdapter -VMHost $h -VMKernel).Where{$_.ManagementTrafficEnabled -eq $true}.IP
             $Nic = Get-VMHostNetworkAdapter -VMHost $h -Physical -Name $Nic | Sort-Object -Property Name
 
+            Write-Host 'Establisting an SSH connection ... ' -NoNewline
             try {
                 $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -AcceptKey:$AcceptKey -ErrorAction Stop
             } catch { 
                 Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
                 continue
             }
+            Write-Host 'success'
 
             foreach ($vmnic in $Nic) {
+                Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
                 $obj = New-Object -TypeName PSObject
                 $obj.PSTypeNames.Insert(0,'VMware.VimAutomation.Custom.Get.VMHostNetworkLldpInfo')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name VMHost -Value $h
@@ -1078,6 +1082,7 @@ function Get-VMHostNetworkLldpInfo {
                     # Remove capture files
                     $cmd = "rm /tmp/vmnic_lldp.pcap"
                     Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
+                    Write-Host 'success'
                 } catch {
                     Write-Warning "Operation timed out while listening for LLDP on $h ($vmnic)."
                     $raw = ''
@@ -1116,6 +1121,7 @@ function Get-VMHostNetworkLldpInfo {
             }
             
             Remove-SSHSession -SessionId $ssh.SessionId | Out-Null
+            Write-Host ''
         }
     }
     End {
