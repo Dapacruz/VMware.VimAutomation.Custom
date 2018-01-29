@@ -1058,6 +1058,7 @@ function Get-VMHostNetworkLldpInfo {
             try {
                 $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -AcceptKey:$AcceptKey -ErrorAction Stop
             } catch { 
+                Write-Host 'fail'
                 Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
                 continue
             }
@@ -1084,6 +1085,7 @@ function Get-VMHostNetworkLldpInfo {
                     Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
                     Write-Host 'success'
                 } catch {
+                    Write-Host 'fail'
                     Write-Warning "Operation timed out while listening for LLDP on $h ($vmnic)."
                     $raw = ''
                 }
