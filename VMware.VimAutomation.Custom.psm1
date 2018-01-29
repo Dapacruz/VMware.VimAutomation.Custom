@@ -1050,7 +1050,7 @@ function Get-VMHostNetworkLldpInfo {
         $VMHost = Get-VMHost -Name $VMHost | Sort-Object -Property Name
 
         foreach ($h in $VMHost) {
-            'Host: {0}' -f $h
+            Write-Host "Host: $h"
             $h_addr = (Get-VMHostNetworkAdapter -VMHost $h -VMKernel).Where{$_.ManagementTrafficEnabled -eq $true}.IP
             $Nic = Get-VMHostNetworkAdapter -VMHost $h -Physical -Name $Nic | Sort-Object -Property Name
 
