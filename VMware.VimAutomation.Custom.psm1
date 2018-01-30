@@ -1078,7 +1078,7 @@ function Get-VMHostNetworkLldpInfo {
                     Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
                     # Capture one LLDP frame
                     $cmd = "pktcap-uw --uplink $vmnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
-                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -TimeOut 30 -ErrorAction Stop | Out-Null
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -TimeOut 45 -ErrorAction Stop | Out-Null
                     
                     # Convert the packet capture to hex and save the ASCII content
                     $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Port Description TLV'"
