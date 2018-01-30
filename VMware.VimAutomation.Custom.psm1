@@ -1058,7 +1058,7 @@ function Get-VMHostNetworkLldpInfo {
             try {
                 $ssh = New-SSHSession -ComputerName $h_addr -Credential $credential -AcceptKey:$AcceptKey -ErrorAction Stop
                 Write-Host 'success'
-            } catch { 
+            } catch {
                 Write-Host 'fail'
                 Write-Warning "Failed to establish an SSH connection to $h ($h_addr)."
                 continue
@@ -1078,7 +1078,7 @@ function Get-VMHostNetworkLldpInfo {
                     Write-Host "Listening for LLDP on $vmnic ... " -NoNewline
                     # Capture one LLDP frame
                     $cmd = "pktcap-uw --uplink $vmnic --ethtype 0x88cc -c 1 -o /tmp/vmnic_lldp.pcap > /dev/null"
-                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -TimeOut 30 -ErrorAction Stop | Out-Null
                     
                     # Convert the packet capture to hex and save the ASCII content
                     $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Port Description TLV'"
@@ -1086,6 +1086,10 @@ function Get-VMHostNetworkLldpInfo {
                     
                     Write-Host 'success'
                 } catch {
+                    # Kill the pktcap-uw process
+                    $cmd = "kill -2 `$(lsof | grep pktcap-uw | awk '{print `$1}' | sort -u)"
+                    Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop | Out-Null
+
                     Write-Host 'fail'
                     Write-Warning "Operation timed out while listening for LLDP on $h ($vmnic)."
                 } finally {
