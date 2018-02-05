@@ -1,6 +1,6 @@
 # See http://www.appveyor.com/docs/appveyor-yml for many more options
 
-#Publish to PowerShell Gallery with this key
+# Publish to PowerShell Gallery with this key
 environment:
   PSGalleryApiKey:
     secure: <enter psgallery api key encrypted via appveyor>
@@ -15,6 +15,6 @@ skip_commits:
 
 build: false
 
-#Kick off the CI/CD pipeline
+# Kick off the CI/CD pipeline
 test_script:
   - ps: . .\Build\Start-Build.ps1 -Task Deploy
