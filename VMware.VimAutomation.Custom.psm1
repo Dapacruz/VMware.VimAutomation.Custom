@@ -2,19 +2,15 @@
 $Public = @( Get-ChildItem -Path $PSScriptRoot\Functions\Public\*.ps1 -ErrorAction SilentlyContinue )
 $Private = @( Get-ChildItem -Path $PSScriptRoot\Functions\Private\*.ps1 -ErrorAction SilentlyContinue )
 
-#Dot source the files
-Foreach ($import in @($Public + $Private))
-{
-    Try
-    {
+# Dot source the files
+foreach ($import in @($Public + $Private)) {
+    try {
         . $import.FullName
-    }
-    Catch
-    {
+    } catch {
         Write-Error "Failed to import function $($import.FullName): $_"
     }
 }
 
 Export-ModuleMember -Function $Public.Basename
 
-#Update-FormatData -PrependPath $PSScriptRoot\format.ps1xml
+# Update-FormatData -PrependPath $PSScriptRoot\format.ps1xml
