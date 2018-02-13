@@ -444,6 +444,9 @@ function Export-VMHostNetworkingToCsv {
     Process {
         # Expand to full hostname in case wildcards are used
         $VMHost = Get-VMHost -Name $VMHost
+        
+        #Check to see if VMHost is associated with a VDS 
+        
 
         foreach ($h in $VMHost) {
             # Export virtual switches
@@ -454,21 +457,37 @@ function Export-VMHostNetworkingToCsv {
                 # Convert array to a comma separated string
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Nic' -Value "$($s.Nic)".Replace(' ', ',')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
-
-                $virtual_switches += $obj
+                if ($s.ExtensionData.Summary.ProductInfo.name = 'DVS'){
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'SwitchType' -Value $s.ExtensionData.Summary.ProductInfo.name
+                    $vds_member = "true" 
+                  }
+                else {Add-Member -InputObject $obj -MemberType NoteProperty -Name 'SwitchType' -Value vSwitch}
+                
+              $virtual_switches += $obj
             }
 
             # Export virtual port groups
             foreach ($s in Get-VirtualPortGroup -VMHost $h) {
-                $nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
-                $obj = New-Object PSObject
+              $obj = New-Object PSObject
+              #Grab DVS Extension Data
+              $key = $s.ExtensionData.Config.key
+              #Handle VDS Port Groups
+                if ($key -like '*dvportgroup*') {
+                  $vdsuplink = Get-VDUplinkTeamingPolicy -VDPortgroup $s.name
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($vdsuplink.ActiveUplinkPort)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($vdsuplink.StandbyUplinkPort)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($vdsuplink.UnusedUplinkPort)".Replace(' ', ',')
+                }
+                else {$nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+                }
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Name' -Value $s.Name
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+
                 
                 $virtual_port_groups += $obj
             }
@@ -607,7 +626,11 @@ function Import-VMHostNetworkingFromCsv {
                     if ($s.VMHost -ne $h) {
                         continue
                     }
-                
+                    #Check to see if this is a VDS Switch
+                    if ($s.SwitchType -eq 'DVS'){
+                      Add-VDSwitchVMHost -VMHost $h.name -VDSwitch $s.Name | Out-Null
+                      continue
+                    }
                     $virtual_switch = Get-VirtualSwitch -VMHost $h -Name $s.Name -ErrorAction SilentlyContinue
 
                     # Skip vSwitch0 since it exists by default
@@ -645,7 +668,7 @@ function Import-VMHostNetworkingFromCsv {
                 $vm_network_exists = Get-VirtualPortGroup -VMHost $h -Name 'VM Network' -ErrorAction SilentlyContinue
                 if ($vm_network_exists) {
                     Write-Host "Removing default 'VM Network' virtual port group."
-                    Remove-VirtualPortGroup -VirtualPortGroup $vm_network_exists -Confirm:$false -ErrorAction SilentlyContinue
+                  #  Remove-VirtualPortGroup -VirtualPortGroup $vm_network_exists -Confirm:$false -ErrorAction SilentlyContinue
                 }
             }
 
@@ -655,7 +678,7 @@ function Import-VMHostNetworkingFromCsv {
                     if ($vpg.VMHost -ne $h) {
                         continue
                     }
-                
+
                     $virtual_switch = Get-VirtualSwitch -VMHost $h -Name $vpg.VirtualSwitch
                     $params = @{
                         'Name'=$vpg.Name
@@ -664,6 +687,10 @@ function Import-VMHostNetworkingFromCsv {
                     }
                     $vpg_exists = Get-VirtualPortGroup -VMHost $h -VirtualSwitch $virtual_switch -Name $vpg.Name -ErrorAction SilentlyContinue
                     if (-not $vpg_exists) {
+                    # Skip creating  port group if it contains a DVS port group uplink setting (since the host already has it). Also assuming the port group uplink is already set correctly for ISCSI binding.
+                    if ($vpg.ActiveNic -like "*uplink*") {
+                        continue
+                    }
                         $ntp = New-VirtualPortGroup @params | Get-NicTeamingPolicy
                         if ($vpg.ActiveNic) {
                             $ntp | Set-NicTeamingPolicy -MakeNicActive $vpg.ActiveNic.Split(',').Trim() | Out-Null
@@ -715,7 +742,7 @@ function Import-VMHostNetworkingFromCsv {
                             $p.Value = $false
                         }
                     }
-
+                    
                     $virtual_switch = (Get-VirtualPortGroup -VMHost $h -Name $n.PortGroup).VirtualSwitch
                     $params = @{
                         'VMHost'= $h
