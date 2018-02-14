@@ -79,9 +79,9 @@ function Get-VMHostNetworkLldpInfo {
                     Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -TimeOut 45 -ErrorAction Stop | Out-Null
                     
                     # Convert the packet capture to hex and save the ASCII content
-                    $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Subtype Interface Name'"
+                    $cmd = "tcpdump-uw -r /tmp/vmnic_lldp.pcap -v | grep -E 'System Name TLV|Subtype Interface Name|Port Description TLV'"
                     $raw = Invoke-SSHCommand -SessionId $ssh.SessionId -Command $cmd -ErrorAction Stop
-                    
+
                     Write-Host 'success'
                 } catch {
                     # Kill the pktcap-uw process
@@ -104,8 +104,13 @@ function Get-VMHostNetworkLldpInfo {
                         $device_id = $tlv -replace $regex, '$1' -as [string]
                     }
 
-                    $regex = "Subtype Interface Name.*?`:\s(.*)"
-                    if ($tlv -match $regex) {
+                    # $regex = "Subtype Interface Name.*?`:\s(.*)"
+                    # if ($tlv -match $regex -and $port_id -eq '') {
+                    #     $port_id = $tlv -replace $regex, '$1' -as [string]
+                    # }
+
+                    $regex = "Port Description TLV.*?`:\s(.*)"
+                    if ($tlv -match $regex -and $port_id -eq '') {
                         $port_id = $tlv -replace $regex, '$1' -as [string]
                     }
                 }

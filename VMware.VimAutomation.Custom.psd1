@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = 'VMware.VimAutomation.Custom.psm1'
+ModuleToProcess = 'VMware.VimAutomation.Custom.psm1'
 
 # Version number of this module.
 ModuleVersion = '1.2'
