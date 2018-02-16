@@ -19,18 +19,12 @@
 function Export-VMHostNetworkingToCsv {
     [CmdletBinding()]
     Param (
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)]
-        [Alias('Name','VMHosts')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name','VMHosts')]
         [string[]]$VMHost,
-
         [switch]$IncludeIscsiAdapter,
-
         [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
-
         [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
-
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv',
-        
         [string]$VMHostIscsiAdapterCsvPath = 'VMHost_iSCSI_Adapter.csv'
     )
     Begin {
@@ -55,6 +49,9 @@ function Export-VMHostNetworkingToCsv {
     Process {
         # Expand to full hostname in case wildcards are used
         $VMHost = Get-VMHost -Name $VMHost
+        
+        #Check to see if VMHost is associated with a VDS 
+        
 
         foreach ($h in $VMHost) {
             # Export virtual switches
@@ -65,21 +62,37 @@ function Export-VMHostNetworkingToCsv {
                 # Convert array to a comma separated string
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Nic' -Value "$($s.Nic)".Replace(' ', ',')
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Mtu' -Value $s.Mtu
-
-                $virtual_switches += $obj
+                if ($s.ExtensionData.Summary.ProductInfo.name = 'DVS'){
+                    Add-Member -InputObject $obj -MemberType NoteProperty -Name 'SwitchType' -Value $s.ExtensionData.Summary.ProductInfo.name
+                    $vds_member = "true" 
+                  }
+                else {Add-Member -InputObject $obj -MemberType NoteProperty -Name 'SwitchType' -Value vSwitch}
+                
+              $virtual_switches += $obj
             }
 
             # Export virtual port groups
             foreach ($s in Get-VirtualPortGroup -VMHost $h) {
-                $nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
-                $obj = New-Object PSObject
+              $obj = New-Object PSObject
+              #Grab DVS Extension Data
+              $key = $s.ExtensionData.Config.key
+              #Handle VDS Port Groups
+                if ($key -like '*dvportgroup*') {
+                  $vdsuplink = Get-VDUplinkTeamingPolicy -VDPortgroup $s.name
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($vdsuplink.ActiveUplinkPort)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($vdsuplink.StandbyUplinkPort)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($vdsuplink.UnusedUplinkPort)".Replace(' ', ',')
+                }
+                else {$nic_teaming_policy = Get-NicTeamingPolicy -VirtualPortGroup $s
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
+                  Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+                }
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VMHost' -Value $h
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'Name' -Value $s.Name
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VirtualSwitch' -Value $s.VirtualSwitch
                 Add-Member -InputObject $obj -MemberType NoteProperty -Name 'VLanId' -Value $s.VLanId
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'ActiveNic' -Value "$($nic_teaming_policy.ActiveNic)".Replace(' ', ',')
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'StandbyNic' -Value "$($nic_teaming_policy.StandbyNic)".Replace(' ', ',')
-                Add-Member -InputObject $obj -MemberType NoteProperty -Name 'UnusedNic' -Value "$($nic_teaming_policy.UnusedNic)".Replace(' ', ',')
+
                 
                 $virtual_port_groups += $obj
             }

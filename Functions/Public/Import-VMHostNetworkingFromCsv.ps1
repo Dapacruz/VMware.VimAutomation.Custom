@@ -19,18 +19,12 @@
 function Import-VMHostNetworkingFromCsv {
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact='High')]
     Param (
-        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)]
-        [Alias('Name', 'VMHosts')]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName, Mandatory, Position=0)][Alias('Name', 'VMHosts')]
         [string[]]$VMHost,
-
         [switch]$IncludeIscsiAdapter,
-
         [string]$VirtualSwitchesCsvPath = 'VMHost_Virtual_Switches.csv',
-
         [string]$VirtualPortGroupsCsvPath = 'VMHost_Virtual_Port_Groups.csv',
-
         [string]$VMHostNetworkAdaptersCsvPath = 'VMHost_Network_Adapters.csv',
-        
         [string]$VMHostIscsiAdapterCsvPath = 'VMHost_iSCSI_Adapter.csv'
     )
     Begin {
@@ -67,7 +61,11 @@ function Import-VMHostNetworkingFromCsv {
                     if ($s.VMHost -ne $h) {
                         continue
                     }
-                
+                    #Check to see if this is a VDS Switch
+                    if ($s.SwitchType -eq 'DVS'){
+                      Add-VDSwitchVMHost -VMHost $h.name -VDSwitch $s.Name | Out-Null
+                      continue
+                    }
                     $virtual_switch = Get-VirtualSwitch -VMHost $h -Name $s.Name -ErrorAction SilentlyContinue
 
                     # Skip vSwitch0 since it exists by default
@@ -105,7 +103,7 @@ function Import-VMHostNetworkingFromCsv {
                 $vm_network_exists = Get-VirtualPortGroup -VMHost $h -Name 'VM Network' -ErrorAction SilentlyContinue
                 if ($vm_network_exists) {
                     Write-Host "Removing default 'VM Network' virtual port group."
-                    Remove-VirtualPortGroup -VirtualPortGroup $vm_network_exists -Confirm:$false -ErrorAction SilentlyContinue
+                  #  Remove-VirtualPortGroup -VirtualPortGroup $vm_network_exists -Confirm:$false -ErrorAction SilentlyContinue
                 }
             }
 
@@ -115,7 +113,7 @@ function Import-VMHostNetworkingFromCsv {
                     if ($vpg.VMHost -ne $h) {
                         continue
                     }
-                
+
                     $virtual_switch = Get-VirtualSwitch -VMHost $h -Name $vpg.VirtualSwitch
                     $params = @{
                         'Name'=$vpg.Name
@@ -124,6 +122,10 @@ function Import-VMHostNetworkingFromCsv {
                     }
                     $vpg_exists = Get-VirtualPortGroup -VMHost $h -VirtualSwitch $virtual_switch -Name $vpg.Name -ErrorAction SilentlyContinue
                     if (-not $vpg_exists) {
+                    # Skip creating  port group if it contains a DVS port group uplink setting (since the host already has it). Also assuming the port group uplink is already set correctly for ISCSI binding.
+                    if ($vpg.ActiveNic -like "*uplink*") {
+                        continue
+                    }
                         $ntp = New-VirtualPortGroup @params | Get-NicTeamingPolicy
                         if ($vpg.ActiveNic) {
                             $ntp | Set-NicTeamingPolicy -MakeNicActive $vpg.ActiveNic.Split(',').Trim() | Out-Null
@@ -175,7 +177,7 @@ function Import-VMHostNetworkingFromCsv {
                             $p.Value = $false
                         }
                     }
-
+                    
                     $virtual_switch = (Get-VirtualPortGroup -VMHost $h -Name $n.PortGroup).VirtualSwitch
                     $params = @{
                         'VMHost'= $h
