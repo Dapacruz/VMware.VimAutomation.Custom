@@ -12,5 +12,3 @@ foreach ($import in @($Public + $Private)) {
 }
 
 Export-ModuleMember -Function $Public.Basename
-
-# Update-FormatData -PrependPath $PSScriptRoot\format.ps1xml
