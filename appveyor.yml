@@ -3,7 +3,7 @@
 # Publish to PowerShell Gallery with this key
 environment:
   PSGalleryApiKey:
-    secure: <enter psgallery api key encrypted via appveyor>
+    secure: swNocztj+nNpywPVDbJDcLOf4iLl1Ma3ia2GH36lXlh0ofkRNMtDVmFaxbc4GT29
 
 # Allow WMF5 (i.e. PowerShellGallery functionality)
 os: WMF 5
