@@ -50,8 +50,8 @@ Installation
 **PowerShell Gallery Install**<br />
 PS> Install-Module -Name VMware.VimAutomation.Custom
 
-**PowerShell Gallery Inspect**
+**PowerShell Gallery Inspect**<br />
 PS> Save-Module -Name VMware.VimAutomation.Custom -Path <path>
 
-**Manual**
+**Manual**<br />
 Download, unzip and copy the VMware.VimAutomation.Custom subfolder to $home\Documents\WindowsPowerShell\Modules\
