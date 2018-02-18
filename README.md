@@ -47,4 +47,11 @@ Calculates the CPU ready percent average of virtual machines provided
 
 Installation
 --------------
+**PowerShell Gallery Install**
+PS> Install-Module -Name VMware.VimAutomation.Custom
+
+**PowerShell Gallery Inspect**
+PS> Save-Module -Name VMware.VimAutomation.Custom -Path <path>
+
+**Manual**
 Download, unzip and copy the VMware.VimAutomation.Custom subfolder to $home\Documents\WindowsPowerShell\Modules\
