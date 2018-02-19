@@ -104,10 +104,10 @@ function Get-VMHostNetworkLldpInfo {
                         $device_id = $tlv -replace $regex, '$1' -as [string]
                     }
 
-                    # $regex = "Subtype Interface Name.*?`:\s(.*)"
-                    # if ($tlv -match $regex -and $port_id -eq '') {
-                    #     $port_id = $tlv -replace $regex, '$1' -as [string]
-                    # }
+                    $regex = "Subtype Interface Name.*?`:\s(.*)"
+                    if ($tlv -match $regex -and $port_id -eq '') {
+                        $port_id = $tlv -replace $regex, '$1' -as [string]
+                    }
 
                     $regex = "Port Description TLV.*?`:\s(.*)"
                     if ($tlv -match $regex -and $port_id -eq '') {
