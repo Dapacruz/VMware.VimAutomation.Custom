@@ -79,8 +79,8 @@ function New-VMHostNetworkingCsvTemplate {
                 'esx1,Management Network,vSwitch0,0,"vmnic4,vmnic0",,'
                 'esx1,DMZ,vSwitch0,200,"vmnic4,vmnic0",,'
                 'esx1,Production,vSwitch0,0,"vmnic4,vmnic0",,'
-                'esx1,iSCSI2,vSwitch1,0,vmnic5,,vmnic1'
-                'esx1,iSCSI1,vSwitch1,0,vmnic1,,vmnic5'
+                'esx1,iSCSI1,vSwitch1,0,vmnic5,,vmnic1'
+                'esx1,iSCSI2,vSwitch1,0,vmnic1,,vmnic5'
             )
         }
         
