@@ -1,6 +1,9 @@
 <#
         .Synopsis
-        Scans for all snapshots including hidden ones on all VM's, or selected ones.
+        Scans for all snapshots including hidden ones on all VM's, or selected ones. Background on why this is needed-
+        https://kb.vmware.com/s/article/1002310
+        https://kb.vmware.com/s/article/1005049
+
         .Description
         Returns a list of snapshots that include hidden and visible ones. Invisble snapshots are considered snapshots that can only be found by searching the VMFS file system for *delta* files.
         Pipeline support is included. 
