@@ -46,6 +46,11 @@ Displays the LLDP info for each vmnic of VMHosts provided
 **Get-VMCpuReadyPercent**
 Calculates the CPU ready percent average of virtual machines provided
 
+**Get-VMCpuReadyPercent**  
+Calculates the CPU ready percent average of virtual machines provided
+
+**Get-AllVMsnapshot**  
+Reports on all VM snapshots in an environment, taking into account scanning for hidden snapshots (Snapshots not visible from the vSphere GUI).
 <br />
 
 Installation
